@@ -1,14 +1,13 @@
 package org.xellossryan.lame;
 
-import org.xellossryan.abstractlayer.AbstractEncoderLayer;
-import org.xellossryan.lame.MP3Lame;
+import org.xellossryan.abstractlayer.EncoderAbstractLayer;
 
 /**
  * MP3Lame
  * <p>
  * Created by Liang on 2017/5/3.
  */
-public class MP3LameProxy extends AbstractEncoderLayer {
+public class MP3LameProxy extends EncoderAbstractLayer {
     private MP3Lame mp3Lame;
 
     public MP3LameProxy(MP3Lame mp3Lame) {

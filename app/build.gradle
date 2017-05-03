@@ -6,13 +6,12 @@ android {
     defaultConfig {
         applicationId "org.xellossryan.akatean"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cFlags "-Wpointer-sign"
                 cppFlags "-std=c++11 -frtti -fexceptions -Wpointer-sign"
                 abiFilters "armeabi","x86"
             }

@@ -82,7 +82,7 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
     jshort *bufferIn = (*env)->GetShortArrayElements(env, bufferIn_, NULL);
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
     jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
-    // TODO
+
     int ret = encode_interleave(bufferIn,  nSamples, mp3buf, mp3BufSize);
 
     (*env)->ReleaseShortArrayElements(env, bufferIn_, bufferIn, 0);
