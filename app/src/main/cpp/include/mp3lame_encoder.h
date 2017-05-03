@@ -28,7 +28,7 @@ Java_org_xellossryan_lame_MP3Lame_initLame(JNIEnv *env, jobject instance);
  */
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_initParameters(JNIEnv *env, jobject instance, jint inSampleRate,
-                                                 jshort inChannels, jint outSampleRate,
+                                                 jint inChannels, jint outSampleRate,
                                                  jint outBitrate, jint quality);
 
 /**
@@ -39,11 +39,19 @@ Java_org_xellossryan_lame_MP3Lame_encode(JNIEnv *env, jobject instance, jshortAr
                                          jshortArray bufferRight_, jint nSamples,
                                          jbyteArray mp3buf_);
 
+
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_flush(JNIEnv *env, jobject instance, jbyteArray mp3buf_) ;
 
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_close(JNIEnv *env, jobject instance);
+
+
+
+JNIEXPORT jint JNICALL
+Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instance,
+                                                    jshortArray bufferIn_, jint nSamples,
+                                                    jbyteArray mp3buf_);
 
 /**
  * 初始化lame参数
@@ -54,7 +62,7 @@ Java_org_xellossryan_lame_MP3Lame_close(JNIEnv *env, jobject instance);
  * @param quality    输出质量
  */
 
-void init(int inSampleRate, short inChannels, int outSampleRate, int outBitrate, int quality);
+void init(int inSampleRate, int inChannels, int outSampleRate, int outBitrate, int quality);
 
 /**
  * 初始化lame编解码器
@@ -78,7 +86,19 @@ int encode(
         int nsamples,
         unsigned char *mp3buf,
         int mp3buf_size);
-
+/**
+ * 将交错编码的PCM编码为mp3帧
+ *
+ * @param bufferIn  PCM缓冲数据
+ * @param nsamples  采样数
+ * @param mp3buf  编码好的mp3流的指针
+ * @param mp3buf_size  当前流的字节数
+ * @return  -1为lame未初始化错误
+ */
+int encode_interleave(short bufferIn[],
+                      int nsamples,
+                      unsigned char *mp3buf,
+                      int mp3buf_size);
 
 /**
  * flush 缓冲数据
@@ -93,8 +113,6 @@ int flush(unsigned char *mp3buf, int size);
  * 关闭编码器
  * @return
  */
-int close();
-
-
+int close();;
 
 #endif //AKATEAN_MP3LAMEPROXY_C_H

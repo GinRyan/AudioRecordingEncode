@@ -20,5 +20,6 @@ public class MainActivity extends AppCompatActivity {
         tv.setText(version);
 
         lame.initLame();
+
     }
 }
