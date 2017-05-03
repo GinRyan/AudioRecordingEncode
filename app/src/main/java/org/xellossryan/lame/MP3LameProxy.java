@@ -1,5 +1,6 @@
-package org.xellossryan.abstractlayer;
+package org.xellossryan.lame;
 
+import org.xellossryan.abstractlayer.AbstractEncoderLayer;
 import org.xellossryan.lame.MP3Lame;
 
 /**
