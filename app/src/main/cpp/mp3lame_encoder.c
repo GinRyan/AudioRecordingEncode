@@ -12,8 +12,8 @@ Java_org_xellossryan_lame_MP3Lame_version(JNIEnv *env, jobject instance) {
     const char *lameUrl = get_lame_url();
     const char *lameOsBit = get_lame_os_bitness();
 
-    int len = strlen(lameVersion) + strlen(lameOsBit) + 10;
-    char versionStr[len] = "";
+   // int len = strlen(lameVersion) + strlen(lameOsBit) + 10;
+    char versionStr[60] = "";
 
     LOGE("lameVersion: %s", lameVersion);
     LOGI("lameUrl: %s \nlameOsBit: %s", lameUrl, lameOsBit);

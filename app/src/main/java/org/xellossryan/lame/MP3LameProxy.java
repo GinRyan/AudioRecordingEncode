@@ -87,6 +87,11 @@ public class MP3LameProxy extends AbstractEncoderLayer {
     }
 
     @Override
+    public String version() {
+        return mp3Lame.version();
+    }
+
+    @Override
     public int initEncoder() {
         try {
             mp3Lame.close();

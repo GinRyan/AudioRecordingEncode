@@ -5,9 +5,10 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import org.xellossryan.lame.MP3Lame;
+import org.xellossryan.lame.MP3LameProxy;
 
 public class MainActivity extends AppCompatActivity {
-    MP3Lame lame = MP3Lame.getInstance();
+    MP3LameProxy lame = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,10 +17,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
+
+        lame = new MP3LameProxy(MP3Lame.getInstance());
+
         String version = lame.version();
         tv.setText(version);
 
-        lame.initLame();
-
+        lame.initEncoder();
     }
 }

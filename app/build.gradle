@@ -12,7 +12,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++11 -frtti -fexceptions"
+                cFlags "-Wpointer-sign"
+                cppFlags "-std=c++11 -frtti -fexceptions -Wpointer-sign"
                 abiFilters "armeabi","x86"
             }
         }

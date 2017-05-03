@@ -7,6 +7,8 @@ import java.util.HashMap;
  */
 public interface EncoderLayer {
 
+    public String version();
+
     public int initEncoder();
 
     public int initParameters(Object parameters);
