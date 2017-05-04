@@ -9,7 +9,7 @@ public class MP3Lame {
     private MP3Lame() {
     }
 
-    public static final MP3Lame LAME = new MP3Lame();
+    private static final MP3Lame LAME = new MP3Lame();
 
     public static MP3Lame getInstance() {
         return LAME;
