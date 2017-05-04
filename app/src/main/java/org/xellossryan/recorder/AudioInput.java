@@ -1,11 +1,17 @@
 package org.xellossryan.recorder;
 
 import android.media.AudioRecord;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 
 import org.xellossryan.abstractlayer.EncoderAbstractLayer;
+import org.xellossryan.lame.MP3Lame;
+import org.xellossryan.lame.ParameterBuilder;
 import org.xellossryan.log.L;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,7 +42,12 @@ public class AudioInput extends Thread {
         channelConfig = EncodeArguments.DEFAULT_CHANNEL_CONFIG;
         audioFormat = EncodeArguments.DEFAULT_AUDIO_FORMAT.getAudioFormat();
         encoder.initEncoder();
-
+        encoder.initParameters(ParameterBuilder.builder()
+                .setInSampleRate(sampleRateInHz)
+                .setInChannels(channelConfig)
+                .setOutBitrate(EncodeArguments.DEFAULT_ENCODER_BIT_RATE)
+                .setQuality(EncodeArguments.DEFAULT_ENCODER_QUALITY)
+        );
         bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
         //Initialize Audio Recorder
         // There should compute bufferSize per period per channel.
@@ -63,34 +74,43 @@ public class AudioInput extends Thread {
         super.run();
         try {
             audioRecorder.startRecording();
+
+            File mp3outputFile = new File(Environment.getExternalStorageDirectory() + "/Aka_" + System.currentTimeMillis() + ".mp3");
+            FileOutputStream outputStream = new FileOutputStream(mp3outputFile);
+            byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes);
+            while (isRecording.get()) {
+                //In fact we shouldn't always allocate []buffer in WHILE loop. That will cost time and
+                // increase memory use significantly.
+                short[] buffer = new short[minBufferSizeInShort];
+                int ret = read(buffer, 0, minBufferSizeInShort);
+                L.i("INPUT:" + ret);
+                if (ret != AudioRecord.ERROR_BAD_VALUE && ret != AudioRecord.ERROR_INVALID_OPERATION) {
+                    //only if right value that buffer can be used.
+                    //TODO Running Audio Encoding
+                    int encRet = encoder.encodeInterleaved(buffer, encodedBuffer, bufferSizeInBytes);
+                    if (encRet == -3) {
+                        break;
+                    }
+                    outputStream.write(encodedBuffer);
+                }
+            }
+            audioRecorder.stop();
+
+            encoder.flush(encodedBuffer);
+            outputStream.write(encodedBuffer);
+            outputStream.close();
+
+
         } catch (IllegalStateException e) {
             L.e("===========Recording Failed!===========");
             e.printStackTrace();
             L.e(String.format("===========%s===========", e.getLocalizedMessage()));
-            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        output = new AudioOutput();
-        output.play();
-        while (isRecording.get()) {
-
-            //In fact we shouldn't always allocate []buffer in WHILE loop. That will cost time and
-            // increase memory use significantly.
-            short[] buffer = new short[minBufferSizeInShort];
-            int ret = read(buffer, 0, minBufferSizeInShort);
-            L.i("INPUT:" + ret);
-            if (ret != AudioRecord.ERROR_BAD_VALUE && ret != AudioRecord.ERROR_INVALID_OPERATION) {
-                //only if right value that buffer can be used.
-                //TODO Running Audio Recording
-                L.i("OUTPUT:" + ret);
-                output.write(buffer, 0, minBufferSizeInShort);
-            }
-        }
-        output.stopPlaying();
-        audioRecorder.stop();
     }
-
-    AudioOutput output = null;
-
 
     public int read(@NonNull short[] audioData, int offsetInBytes, int sizeInBytes) {
         return audioRecorder.read(audioData, offsetInBytes, sizeInBytes);

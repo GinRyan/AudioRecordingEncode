@@ -14,9 +14,6 @@ public class ParameterBuilder {
         return new ParameterBuilder();
     }
 
-    public int getInSampleRate() {
-        return inSampleRate;
-    }
 
     /**
      * 设置输入采样率

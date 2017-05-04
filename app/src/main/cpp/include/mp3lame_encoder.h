@@ -41,11 +41,10 @@ Java_org_xellossryan_lame_MP3Lame_encode(JNIEnv *env, jobject instance, jshortAr
 
 
 JNIEXPORT jint JNICALL
-Java_org_xellossryan_lame_MP3Lame_flush(JNIEnv *env, jobject instance, jbyteArray mp3buf_) ;
+Java_org_xellossryan_lame_MP3Lame_flush(JNIEnv *env, jobject instance, jbyteArray mp3buf_);
 
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_close(JNIEnv *env, jobject instance);
-
 
 
 JNIEXPORT jint JNICALL
@@ -78,7 +77,10 @@ lame_global_flags *init_lame();
  * @param nsamples  每个声道的采样数
  * @param mp3buf  编码好的mp3流的指针
  * @param mp3buf_size  当前流的字节数
- * @return  -1为未初始化错误
+ * @return   -1:  mp3buf was too small
+ *           -2:  malloc() problem
+ *           -3:  lame_init_params() not called
+ *           -4:  psycho acoustic problems
  */
 int encode(
         short buffer_l[],
@@ -86,6 +88,7 @@ int encode(
         int nsamples,
         unsigned char *mp3buf,
         int mp3buf_size);
+
 /**
  * 将交错编码的PCM编码为mp3帧
  *
@@ -93,7 +96,10 @@ int encode(
  * @param nsamples  采样数
  * @param mp3buf  编码好的mp3流的指针
  * @param mp3buf_size  当前流的字节数
- * @return  -1为lame未初始化错误
+ * @return  -1:  mp3buf was too small
+ *          -2:  malloc() problem
+ *          -3:  lame_init_params() not called
+ *          -4:  psycho acoustic problems
  */
 int encode_interleave(short bufferIn[],
                       int nsamples,

@@ -12,7 +12,7 @@ Java_org_xellossryan_lame_MP3Lame_version(JNIEnv *env, jobject instance) {
     const char *lameUrl = get_lame_url();
     const char *lameOsBit = get_lame_os_bitness();
 
-   // int len = strlen(lameVersion) + strlen(lameOsBit) + 10;
+    // int len = strlen(lameVersion) + strlen(lameOsBit) + 10;
     char versionStr[60] = "";
 
     LOGE("lameVersion: %s", lameVersion);
@@ -52,7 +52,7 @@ Java_org_xellossryan_lame_MP3Lame_encode(JNIEnv *env, jobject instance, jshortAr
     jshort *bufferLeft = (*env)->GetShortArrayElements(env, bufferLeft_, NULL);
     jshort *bufferRight = (*env)->GetShortArrayElements(env, bufferRight_, NULL);
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
-    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
+    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf_);
 
     int ret = encode(bufferLeft, bufferRight, nSamples, mp3buf, mp3BufSize);
 
@@ -66,9 +66,9 @@ Java_org_xellossryan_lame_MP3Lame_encode(JNIEnv *env, jobject instance, jshortAr
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_flush(JNIEnv *env, jobject instance, jbyteArray mp3buf_) {
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
-    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
+    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf_);
 
-    int ret = flush((u_char *)mp3buf, mp3BufSize);
+    int ret = flush((u_char *) mp3buf, mp3BufSize);
 
     (*env)->ReleaseByteArrayElements(env, mp3buf_, mp3buf, 0);
     return ret;
@@ -81,9 +81,11 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
                                                     jbyteArray mp3buf_) {
     jshort *bufferIn = (*env)->GetShortArrayElements(env, bufferIn_, NULL);
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
-    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
+    //LOGI("mp3buf head:  %#x", *mp3buf);
+    jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf_);
+    //LOGI("mp3BufSize:  %i", mp3BufSize);
 
-    int ret = encode_interleave(bufferIn,  nSamples, (u_char *)mp3buf, mp3BufSize);
+    int ret = encode_interleave(bufferIn, nSamples, mp3buf, mp3BufSize);
 
     (*env)->ReleaseShortArrayElements(env, bufferIn_, bufferIn, 0);
     (*env)->ReleaseByteArrayElements(env, mp3buf_, mp3buf, 0);
@@ -156,6 +158,7 @@ int encode(
     }
     return lame_encode_buffer(lameGlobal, buffer_l, buffer_r, nsamples, mp3buf, mp3buf_size);
 }
+
 /**
  * 将交错编码的PCM编码为mp3帧
  *

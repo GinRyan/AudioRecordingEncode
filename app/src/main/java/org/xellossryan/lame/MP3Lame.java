@@ -68,13 +68,17 @@ public class MP3Lame {
      * @return -1为未初始化错误
      */
     public native int encode(short[] bufferLeft, short[] bufferRight, int nSamples, byte[] mp3buf);
+
     /**
      * 将交错的PCM编码为mp3帧
      *
-     * @param bufferIn  PCM缓冲数据
-     * @param nSamples    每个声道的采样数
-     * @param mp3buf      编码好的mp3流，该数组大小应为至少 1.25 x nSamples + 7200
-     * @return -1为未初始化错误
+     * @param bufferIn PCM缓冲数据
+     * @param nSamples 每个声道的采样数
+     * @param mp3buf   编码好的mp3流，该数组大小应为至少 1.25 x nSamples + 7200
+     * @return -1:  mp3buf was too small
+     * -2:  malloc() problem
+     * -3:  lame_init_params() not called
+     * -4:  psycho acoustic problems
      */
     public native int encodeInterleaved(short[] bufferIn, int nSamples, byte[] mp3buf);
 

@@ -25,7 +25,7 @@ public class EncodeArguments {
     public static final PCMFormat DEFAULT_AUDIO_FORMAT = PCMFormat.PCM_16BIT;
 
     //======================Lame Default Settings=====================
-    public static final int DEFAULT_ENCODER_MP3_QUALITY = 6;
+    public static final int DEFAULT_ENCODER_QUALITY = 6;
     /**
      * 与DEFAULT_CHANNEL_CONFIG相关，因为是mono单声，所以是1，如果是 AudioFormat.CHANNEL_IN_STEREO则为2
      */
@@ -33,5 +33,5 @@ public class EncodeArguments {
     /**
      * Encoded bit rate. MP3 file will be encoded with bit rate 32kbps
      */
-    public static final int DEFAULT_ENCODER_MP3_BIT_RATE = 128;
+    public static final int DEFAULT_ENCODER_BIT_RATE = 128;
 }
