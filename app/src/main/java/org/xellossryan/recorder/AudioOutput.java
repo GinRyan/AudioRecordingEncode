@@ -2,6 +2,7 @@ package org.xellossryan.recorder;
 
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.support.annotation.NonNull;
 
 /**
  * 音频输出线程
@@ -32,7 +33,26 @@ public class AudioOutput extends Thread {
     public void run() {
         super.run();
         //TODO Running audio track output playing
+    }
 
 
+    public void release() {
+        track.release();
+    }
+
+    public void play() throws IllegalStateException {
+        track.play();
+    }
+
+    public void stopPlaying() {
+        track.stop();
+    }
+
+    public void pause() throws IllegalStateException {
+        track.pause();
+    }
+
+    public int write(@NonNull short[] audioData, int offsetInBytes, int sizeInBytes) {
+        return track.write(audioData, offsetInBytes, sizeInBytes);
     }
 }

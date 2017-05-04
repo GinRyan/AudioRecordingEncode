@@ -11,7 +11,7 @@ import org.xellossryan.lame.MP3LameProxy;
 import org.xellossryan.recorder.AudioInput;
 
 public class MainActivity extends AppCompatActivity {
-    AudioInput lame = null;
+    AudioInput input = null;
 
     String recordFilePath = "";
 
@@ -31,8 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
         record.setText("开始录制");
 
-        lame = new AudioInput(new MP3LameProxy(MP3Lame.getInstance()));
-        String version = lame.version();
+        input = new AudioInput(new MP3LameProxy(MP3Lame.getInstance()));
+        String version = input.version();
         sampletext.setText(version);
 
         record.setOnClickListener(new View.OnClickListener() {
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         record.setText("停止录制");
         filepath.setText(String.format("%s  正在录制", recordFilePath));
 
+        input.startRecording();
     }
 
     public void stop() {
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         record.setText("开始录制");
         filepath.setText(String.format("%s  录制停止", recordFilePath));
 
+        input.stopRecording();
     }
 
     @Override
@@ -75,6 +77,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        lame.close();
+        input.close();
     }
 }
