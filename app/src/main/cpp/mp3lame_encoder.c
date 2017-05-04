@@ -68,7 +68,7 @@ Java_org_xellossryan_lame_MP3Lame_flush(JNIEnv *env, jobject instance, jbyteArra
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
     jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
 
-    int ret = flush(mp3buf, mp3BufSize);
+    int ret = flush((u_char *)mp3buf, mp3BufSize);
 
     (*env)->ReleaseByteArrayElements(env, mp3buf_, mp3buf, 0);
     return ret;
@@ -83,7 +83,7 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
     jbyte *mp3buf = (*env)->GetByteArrayElements(env, mp3buf_, NULL);
     jsize mp3BufSize = (*env)->GetArrayLength(env, mp3buf);
 
-    int ret = encode_interleave(bufferIn,  nSamples, mp3buf, mp3BufSize);
+    int ret = encode_interleave(bufferIn,  nSamples, (u_char *)mp3buf, mp3BufSize);
 
     (*env)->ReleaseShortArrayElements(env, bufferIn_, bufferIn, 0);
     (*env)->ReleaseByteArrayElements(env, mp3buf_, mp3buf, 0);

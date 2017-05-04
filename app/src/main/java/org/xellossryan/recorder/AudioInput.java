@@ -6,6 +6,8 @@ import org.xellossryan.abstractlayer.EncoderAbstractLayer;
 import org.xellossryan.log.L;
 
 /**
+ * 音频输入和编码线程
+ * <p>
  * Created by Liang on 2017/5/3.
  */
 public class AudioInput extends Thread {
@@ -20,14 +22,6 @@ public class AudioInput extends Thread {
     int audioFormat;
     int bufferSizeInBytes;
 
-    public String version() {
-        return encoder.version();
-    }
-
-    public int close() {
-        return encoder.close();
-    }
-
     public AudioInput(EncoderAbstractLayer layer) {
         encoder = layer;
         audioSource = EncodeArguments.DEFAULT_AUDIO_SOURCE;
@@ -40,14 +34,22 @@ public class AudioInput extends Thread {
         //Initialize Audio Recorder
         // There should compute bufferSize per period per channel.
         L.d("bufferSizeInBytes: " + bufferSizeInBytes);
-        audioRecorder = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
+        audioRecorder = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes * 2);
+
+    }
+
+    public String version() {
+        return encoder.version();
+    }
+
+    public int close() {
+        return encoder.close();
     }
 
     @Override
     public void run() {
         super.run();
         //TODO Running Audio Recording
-
 
     }
 }
