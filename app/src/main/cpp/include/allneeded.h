@@ -14,7 +14,7 @@
 #include <wchar.h>
 #include <jni.h>
 #include <ctype.h>
-#include <error.h>
+//#include <error.h>
 #include <errno.h>
 #include <memory.h>
 #include <paths.h>
