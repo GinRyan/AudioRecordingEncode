@@ -47,7 +47,6 @@ public class AudioInput extends Thread {
 
         audioRecorder = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
 
-        encodeQueue.preparePool(bufferSizeInBytes);
 
         if (bufferSizeInBytes == AudioRecord.ERROR_BAD_VALUE) {
             L.e("audioSource:" + audioSource);
@@ -60,11 +59,15 @@ public class AudioInput extends Thread {
         if (audioRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
             // Because the bufferSizeInBytes is byte units
             // short = byte * 2, if not ,there will be data overflow.
-            minBufferSizeInShort = bufferSizeInBytes / 2;
+
+            //minBufferSizeInShort = bufferSizeInBytes / 2;//  / 2;
             //TODO
-            bufferSizeInBytes = minBufferSizeInShort;
+            minBufferSizeInShort = bufferSizeInBytes;
+            //bufferSizeInBytes = minBufferSizeInShort;
 
         }
+
+        encodeQueue.preparePool(bufferSizeInBytes);
     }
 
     @Override
