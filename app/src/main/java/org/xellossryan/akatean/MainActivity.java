@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import org.xellossryan.lame.MP3Lame;
 import org.xellossryan.lame.MP3LameProxy;
+import org.xellossryan.output.FrameEncodeQueue;
 import org.xellossryan.recorder.AudioInput;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
         record.setText("开始录制");
 
-        input = new AudioInput(new MP3LameProxy(MP3Lame.getInstance()));
+        input = new AudioInput(new FrameEncodeQueue(new MP3LameProxy(MP3Lame.getInstance())));
         String version = input.version();
         sampletext.setText(version);
 

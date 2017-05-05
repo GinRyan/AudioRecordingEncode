@@ -1,17 +1,12 @@
 package org.xellossryan.recorder;
 
 import android.media.AudioRecord;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 
-import org.xellossryan.abstractlayer.EncoderAbstractLayer;
 import org.xellossryan.lame.MP3Lame;
-import org.xellossryan.lame.ParameterBuilder;
 import org.xellossryan.log.L;
+import org.xellossryan.output.FrameEncodeQueue;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -20,39 +15,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by Liang on 2017/5/3.
  */
 public class AudioInput extends Thread {
-
-    private EncoderAbstractLayer encoder;
+    FrameEncodeQueue encodeQueue;
 
     private AudioRecord audioRecorder;
 
-    private int audioSource = 1;//1 for mic
-    private int sampleRateInHz = 44100;
-    private int channelConfig = 12;//12 for stereo, 10 for mono
-    private int audioFormat = 0;//3 for 8bit, 2 for 16bit
     private int bufferSizeInBytes = 0;//compute by AudioRecord.getMinBufferSize()
 
     private final AtomicBoolean isRecording = new AtomicBoolean(true);
 
+    private int audioSource = 1;//1 for mic
+    private int audioFormat = 0;//3 for 8bit, 2 for 16bit
+    private int sampleRateInHz = 44100;
+    private int channelConfig = 12;//12 for stereo, 10 for mono
+
     int minBufferSizeInShort = 0;
 
-    public AudioInput(EncoderAbstractLayer layer) {
-        encoder = layer;
+    public AudioInput(FrameEncodeQueue encodeQueue) {
+        this.encodeQueue = encodeQueue;
+
+
+        //Initialize Audio Recorder
+        // There should compute bufferSizeInBytes per period per channel.
+        L.d("bufferSizeInBytes: " + bufferSizeInBytes);
+
         audioSource = EncodeArguments.DEFAULT_AUDIO_SOURCE;
         sampleRateInHz = EncodeArguments.DEFAULT_SAMPLING_RATE;
         channelConfig = EncodeArguments.DEFAULT_CHANNEL_CONFIG;
         audioFormat = EncodeArguments.DEFAULT_AUDIO_FORMAT.getAudioFormat();
-        encoder.initEncoder();
-        encoder.initParameters(ParameterBuilder.builder()
-                .setInSampleRate(sampleRateInHz)
-                .setInChannels(channelConfig)
-                .setOutBitrate(EncodeArguments.DEFAULT_ENCODER_BIT_RATE)
-                .setQuality(EncodeArguments.DEFAULT_ENCODER_QUALITY)
-        );
+
         bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-        //Initialize Audio Recorder
-        // There should compute bufferSize per period per channel.
-        L.d("bufferSizeInBytes: " + bufferSizeInBytes);
+
         audioRecorder = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
+
+        encodeQueue.preparePool(bufferSizeInBytes);
 
         if (bufferSizeInBytes == AudioRecord.ERROR_BAD_VALUE) {
             L.e("audioSource:" + audioSource);
@@ -63,9 +58,12 @@ public class AudioInput extends Thread {
         }
 
         if (audioRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
-            // Because the bufferSize is byte units
-            // short = byte * 2
+            // Because the bufferSizeInBytes is byte units
+            // short = byte * 2, if not ,there will be data overflow.
             minBufferSizeInShort = bufferSizeInBytes / 2;
+            //TODO
+            bufferSizeInBytes = minBufferSizeInShort;
+
         }
     }
 
@@ -75,39 +73,29 @@ public class AudioInput extends Thread {
         try {
             audioRecorder.startRecording();
 
-            File mp3outputFile = new File(Environment.getExternalStorageDirectory() + "/Aka_" + System.currentTimeMillis() + ".mp3");
-            FileOutputStream outputStream = new FileOutputStream(mp3outputFile);
             byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes);
+            L.i(" encodedBuffer Length:" + encodedBuffer.length);
             while (isRecording.get()) {
-                //In fact we shouldn't always allocate []buffer in WHILE loop. That will cost time and
+                //In fact we shouldn't always allocate []pcmBuffer in WHILE loop. That will cost time and
                 // increase memory use significantly.
                 short[] buffer = new short[minBufferSizeInShort];
+                //TODO There , we can borrow a bufferFrame to fill PCM data.instead of new short[minBufferSizeInShort]
                 int ret = read(buffer, 0, minBufferSizeInShort);
-                L.i("INPUT:" + ret);
+
                 if (ret != AudioRecord.ERROR_BAD_VALUE && ret != AudioRecord.ERROR_INVALID_OPERATION) {
-                    //only if right value that buffer can be used.
-                    //TODO Running Audio Encoding
-                    int encRet = encoder.encodeInterleaved(buffer, encodedBuffer, bufferSizeInBytes);
-                    if (encRet == -3) {
-                        break;
-                    }
-                    outputStream.write(encodedBuffer);
+                    //only if right value that pcmBuffer can be used.
+                    //Add to the encode queue
+                    encodeQueue.addInQueue(buffer, encodedBuffer, bufferSizeInBytes);
+                    L.i("INPUT: " + ret + "  BufferSizeInBytes: " + bufferSizeInBytes + " BufferSizeInShorts: " + minBufferSizeInShort);
                 }
             }
             audioRecorder.stop();
-
-            encoder.flush(encodedBuffer);
-            outputStream.write(encodedBuffer);
-            outputStream.close();
-
-
+            encodeQueue.setStopEncoding();
         } catch (IllegalStateException e) {
             L.e("===========Recording Failed!===========");
             e.printStackTrace();
             L.e(String.format("===========%s===========", e.getLocalizedMessage()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -125,6 +113,7 @@ public class AudioInput extends Thread {
     }
 
     public void startRecording() {
+        encodeQueue.start();
         isRecording.set(true);
         super.start();
     }
@@ -137,11 +126,11 @@ public class AudioInput extends Thread {
     }
 
     public String version() {
-        return encoder.version();
+        return encodeQueue.version();
     }
 
     public int close() {
-        return encoder.close();
+        return encodeQueue.close();
     }
 
     public AudioInput setRecording(boolean recording) {

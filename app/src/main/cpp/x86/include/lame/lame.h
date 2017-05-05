@@ -952,9 +952,9 @@ void CDECL lame_mp3_tags_fid(lame_global_flags *, FILE* fid);
 
 /*
  * OPTIONAL:
- * lame_get_lametag_frame copies the final LAME-tag into 'buffer'.
- * The function returns the number of bytes copied into buffer, or
- * the required buffer size, if the provided buffer is too small.
+ * lame_get_lametag_frame copies the final LAME-tag into 'pcmBuffer'.
+ * The function returns the number of bytes copied into pcmBuffer, or
+ * the required pcmBuffer size, if the provided pcmBuffer is too small.
  * Function failed, if the return value is larger than 'size'!
  * Make sure lame_encode flush has been called before calling this function.
  * NOTE:
@@ -965,7 +965,7 @@ void CDECL lame_mp3_tags_fid(lame_global_flags *, FILE* fid);
  * which you have to replace by the final LAME-tag frame after encoding.
  * In case there is no ID3v2 tag, usually this frame will be the very first
  * data in your mp3 file. If you put some other leading data into your
- * file, you'll have to do some bookkeeping about where to write this buffer.
+ * file, you'll have to do some bookkeeping about where to write this pcmBuffer.
  */
 size_t CDECL lame_get_lametag_frame(
         const lame_global_flags *, unsigned char* buffer, size_t size);
@@ -1220,18 +1220,18 @@ int CDECL id3tag_set_fieldvalue(lame_t gfp, const char* fieldvalue);
 /* return non-zero result if image type is invalid */
 int CDECL id3tag_set_albumart(lame_t gfp, const char* image, size_t size);
 
-/* lame_get_id3v1_tag copies ID3v1 tag into buffer.
- * Function returns number of bytes copied into buffer, or number
- * of bytes rquired if buffer 'size' is too small.
+/* lame_get_id3v1_tag copies ID3v1 tag into pcmBuffer.
+ * Function returns number of bytes copied into pcmBuffer, or number
+ * of bytes rquired if pcmBuffer 'size' is too small.
  * Function fails, if returned value is larger than 'size'.
  * NOTE:
  * This functions does nothing, if user/LAME disabled ID3v1 tag.
  */
 size_t CDECL lame_get_id3v1_tag(lame_t gfp, unsigned char* buffer, size_t size);
 
-/* lame_get_id3v2_tag copies ID3v2 tag into buffer.
- * Function returns number of bytes copied into buffer, or number
- * of bytes rquired if buffer 'size' is too small.
+/* lame_get_id3v2_tag copies ID3v2 tag into pcmBuffer.
+ * Function returns number of bytes copied into pcmBuffer, or number
+ * of bytes rquired if pcmBuffer 'size' is too small.
  * Function fails, if returned value is larger than 'size'.
  * NOTE:
  * This functions does nothing, if user/LAME disabled ID3v2 tag.
