@@ -22,7 +22,7 @@ public class FrameEncodeQueue extends Thread {
     public static final int BUFFER_QUEUE_CAPACITY = 100;
 
     BlockingQueue<BufferedFrame> idleBufferPool = new ArrayBlockingQueue<>(BUFFER_QUEUE_CAPACITY);
-    BlockingQueue<BufferedFrame> taskQueue = new ArrayBlockingQueue<>(100);
+    BlockingQueue<BufferedFrame> taskQueue = new ArrayBlockingQueue<>(BUFFER_QUEUE_CAPACITY);
 
     /**
      * 编码过程标识，为false时编码队列线程结束
@@ -33,6 +33,7 @@ public class FrameEncodeQueue extends Thread {
 
     private int sampleRateInHz = 44100;
     private int channelConfig = 12;//12 for stereo, 10 for mono
+    private byte[] lastOneBuffer;
 
     /**
      * 传入编码器实例
@@ -41,6 +42,7 @@ public class FrameEncodeQueue extends Thread {
      */
     public FrameEncodeQueue(EncoderLayer encoder) {
         this.encoder = encoder;
+        setName("FrameEncodeQueue");
     }
 
     public void preparePool(int bufferSize) {
@@ -64,50 +66,59 @@ public class FrameEncodeQueue extends Thread {
 
     @Override
     public void run() {
+        L.v("Running: " + getName());
         super.run();
+        File mp3outputFile = new File(Environment.getExternalStorageDirectory() + "/zVoice/Aka_" + System.currentTimeMillis() + ".mp3");
+        if (!mp3outputFile.getParentFile().exists()) {
+            boolean mkdirs = mp3outputFile.getParentFile().mkdirs();
+            if (!mkdirs) {
+                return;
+            }
+        }
+        FileOutputStream outputStream = null;
+        BufferedFrame frame = null;
         try {
+            outputStream = new FileOutputStream(mp3outputFile);
 
-            File mp3outputFile = new File(Environment.getExternalStorageDirectory() + "/zVoice/Aka_" + System.currentTimeMillis() + ".mp3");
-            if (!mp3outputFile.getParentFile().exists()) {
-                boolean mkdirs = mp3outputFile.getParentFile().mkdirs();
-                if (!mkdirs) {
-                    return;
+            L.w(getName() + ": Task queue START: " + taskQueue.remainingCapacity() + "  " +
+                    "TaskQueue#isEmpty()?" + taskQueue.isEmpty());
+            L.w(getName() + ": isEncodingState: " + isEncodingState);
+            while (!taskQueue.isEmpty() || isEncodingState.get()) {
+                L.v(getName() + ": Task queue take: " + taskQueue.remainingCapacity());
+                frame = taskQueue.take();
+                if (frame.pcmBuffer != null) {
+                    //Encoding
+                    encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.bufferSizeInBytes >> 1);
+                    L.i(getName() + ": Encoding... " + frame.bufferSizeInBytes);
+                    //WriteInFile
+                    outputStream.write(frame.encodedBuffer);
+                    //release
+                    returnBack(frame);
                 }
             }
-            FileOutputStream outputStream = new FileOutputStream(mp3outputFile);
-
-            BufferedFrame frame = null;
-
-            L.w("Task queue START: " + taskQueue.remainingCapacity());
-            while (!taskQueue.isEmpty() && isEncodingState.get()) {
-                L.v("Task queue take: " + taskQueue.remainingCapacity());
-                frame = taskQueue.take();
-                //Encoding
-                encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.bufferSizeInBytes >> 1);
-                L.i("Encoding... " + frame.bufferSizeInBytes);
-                //WriteInFile
-                outputStream.write(frame.encodedBuffer);
-                //release
-                //returnBack(frame);
-            }
-            if (frame == null) {
-                L.e("Unexpected Ending....");
-                frame = taskQueue.take();
-            }
-            L.v("End flushing...");
-            encoder.flush(frame.encodedBuffer);
-            outputStream.write(frame.encodedBuffer);
-            outputStream.close();
-            L.v("OK");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            L.v(getName() + ": End flushing...");
+            try {
+                if (outputStream != null) {
+                    returnBack(frame);
+                    if (frame != null) {
+                        encoder.flush(frame.encodedBuffer);
+                        outputStream.write(frame.encodedBuffer);
+                    }
+                    outputStream.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            L.v(getName() + ": Encoder flushing OK");
         }
-
-
+        L.w(getName() + ": STOPPED!");
     }
 
     /**
@@ -120,7 +131,7 @@ public class FrameEncodeQueue extends Thread {
     public void addInQueue(short[] buffer, byte[] encodedBuffer, int bufferSizeInBytes) {
         BufferedFrame filledBuffer = borrow().fillBuffer(buffer, encodedBuffer, bufferSizeInBytes);
         try {
-            L.v("add into queue, remain capacity: " + taskQueue.remainingCapacity());
+            L.v(getName() + ": Add into queue, remain capacity: " + taskQueue.remainingCapacity());
             taskQueue.put(filledBuffer);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -176,6 +187,15 @@ public class FrameEncodeQueue extends Thread {
 
     public int close() {
         return encoder.close();
+    }
+
+    public void flush(byte[] lastOneBuffer) {
+        this.lastOneBuffer = lastOneBuffer;
+        BufferedFrame lastOneBufferFrame = borrow()
+                .resetAsIdle(bufferSize)
+                .setPcmBuffer(null)
+                .setEncodedBuffer(lastOneBuffer);
+        taskQueue.add(lastOneBufferFrame);
     }
 
     /**

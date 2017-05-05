@@ -32,7 +32,7 @@ public class AudioInput extends Thread {
 
     public AudioInput(FrameEncodeQueue encodeQueue) {
         this.encodeQueue = encodeQueue;
-
+        setName("AudioInput");
 
         //Initialize Audio Recorder
         // There should compute bufferSizeInBytes per period per channel.
@@ -69,12 +69,14 @@ public class AudioInput extends Thread {
 
     @Override
     public void run() {
+        L.v("Running: " + getName());
         super.run();
         try {
             audioRecorder.startRecording();
+            encodeQueue.start();
 
             byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes);
-            L.i(" encodedBuffer Length:" + encodedBuffer.length);
+            L.i(getName() + ":  encodedBuffer Length:" + encodedBuffer.length);
             while (isRecording.get()) {
                 //In fact we shouldn't always allocate []pcmBuffer in WHILE loop. That will cost time and
                 // increase memory use significantly.
@@ -86,10 +88,12 @@ public class AudioInput extends Thread {
                     //only if right value that pcmBuffer can be used.
                     //Add to the encode queue
                     encodeQueue.addInQueue(buffer, encodedBuffer, bufferSizeInBytes);
-                    L.i("INPUT: " + ret + "  BufferSizeInBytes: " + bufferSizeInBytes + " BufferSizeInShorts: " + minBufferSizeInShort);
+                    L.i(getName() + "INPUT: " + ret + "  BufferSizeInBytes: " + bufferSizeInBytes + " BufferSizeInShorts: " + minBufferSizeInShort);
                 }
             }
+            L.w(getName() + ": Goto Flush status ...");
             audioRecorder.stop();
+            encodeQueue.flush(encodedBuffer);
             encodeQueue.setStopEncoding();
         } catch (IllegalStateException e) {
             L.e("===========Recording Failed!===========");
@@ -98,6 +102,7 @@ public class AudioInput extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        L.w(getName() + ": STOPPED!");
     }
 
     public int read(@NonNull short[] audioData, int offsetInBytes, int sizeInBytes) {
@@ -113,7 +118,7 @@ public class AudioInput extends Thread {
     }
 
     public void startRecording() {
-        encodeQueue.start();
+
         isRecording.set(true);
         super.start();
     }
