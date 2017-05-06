@@ -79,21 +79,22 @@ public class FrameEncodeQueue extends Thread {
         BufferedFrame frame = null;
         try {
             outputStream = new FileOutputStream(mp3outputFile);
-
             L.w(getName() + ": Task queue START: " + taskQueue.remainingCapacity() + "  " +
                     "TaskQueue#isEmpty()?" + taskQueue.isEmpty());
-            L.w(getName() + ": isEncodingState: " + isEncodingState);
+            // L.w(getName() + ": isEncodingState: " + isEncodingState);
             while (!taskQueue.isEmpty() || isEncodingState.get()) {
-                L.v(getName() + ": Task queue take: " + taskQueue.remainingCapacity());
+                // L.v(getName() + ": Task queue take: " + taskQueue.remainingCapacity());
                 frame = taskQueue.take();
                 if (frame.pcmBuffer != null) {
                     //Encoding
-                    encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.bufferSizeInBytes >> 1);
-                    L.i(getName() + ": Encoding... " + frame.bufferSizeInBytes);
-                    //WriteInFile
-                    outputStream.write(frame.encodedBuffer);
-                    //release
-                    returnBack(frame);
+                    int encodeInterleavedLength = encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.pcmBufferReadSize >> 1);
+                    if (encodeInterleavedLength > 0) {
+                        L.i(getName() + ": Encoding Size: " + encodeInterleavedLength);
+                        //WriteInFile
+                        outputStream.write(frame.encodedBuffer, 0, encodeInterleavedLength);
+                        //release
+                        returnBack(frame);
+                    }
                 }
             }
         } catch (FileNotFoundException e) {
@@ -112,7 +113,7 @@ public class FrameEncodeQueue extends Thread {
                         outputStream.write(frame.encodedBuffer);
                     }
                     outputStream.close();
-                    if (onEncodingEnd!=null){
+                    if (onEncodingEnd != null) {
                         onEncodingEnd.onEnd(mp3outputFile);
                     }
                 }
@@ -134,15 +135,16 @@ public class FrameEncodeQueue extends Thread {
     public interface OnEncodingEnd {
         public void onEnd(File audioFile);
     }
+
     /**
      * 添加到队列
      *
      * @param buffer
      * @param encodedBuffer
-     * @param bufferSizeInBytes
+     * @param bufferSizeInShorts
      */
-    public void addInQueue(short[] buffer, byte[] encodedBuffer, int bufferSizeInBytes) {
-        BufferedFrame filledBuffer = borrow().fillBuffer(buffer, encodedBuffer, bufferSizeInBytes);
+    public void addInQueue(short[] buffer, byte[] encodedBuffer, int bufferSizeInShorts) {
+        BufferedFrame filledBuffer = borrow().fillBuffer(buffer, encodedBuffer, bufferSizeInShorts);
         try {
             L.v(getName() + ": Add into queue, remain capacity: " + taskQueue.remainingCapacity());
             taskQueue.put(filledBuffer);
@@ -231,9 +233,9 @@ public class FrameEncodeQueue extends Thread {
          */
         public byte[] encodedBuffer;
         /**
-         * 已编码缓冲区大小
+         * PCM读取大小
          */
-        public int bufferSizeInBytes;
+        public int pcmBufferReadSize;
 
         /**
          * 重置为空包，节省空间
@@ -241,7 +243,7 @@ public class FrameEncodeQueue extends Thread {
          * @return
          */
         public BufferedFrame resetAsIdle(int bufferSizeInBytes) {
-            this.bufferSizeInBytes = bufferSizeInBytes;
+            this.pcmBufferReadSize = bufferSizeInBytes;
             pcmBuffer = new short[bufferSizeInBytes];
             encodedBuffer = new byte[bufferSizeInBytes];
             isIdle = true;
@@ -249,7 +251,7 @@ public class FrameEncodeQueue extends Thread {
         }
 
         public BufferedFrame fillBuffer(short[] data, byte[] encodedBuffer, int bufferSize) {
-            this.bufferSizeInBytes = bufferSize;
+            this.pcmBufferReadSize = bufferSize;
             this.pcmBuffer = data;
             this.encodedBuffer = encodedBuffer;
             this.isIdle = false;
@@ -270,8 +272,8 @@ public class FrameEncodeQueue extends Thread {
             return this;
         }
 
-        public BufferedFrame setBufferSizeInBytes(int bufferSizeInBytes) {
-            this.bufferSizeInBytes = bufferSizeInBytes;
+        public BufferedFrame setPcmBufferReadSize(int pcmBufferReadSize) {
+            this.pcmBufferReadSize = pcmBufferReadSize;
             return this;
         }
 
@@ -283,8 +285,8 @@ public class FrameEncodeQueue extends Thread {
             return pcmBuffer;
         }
 
-        public int getBufferSizeInBytes() {
-            return bufferSizeInBytes;
+        public int getPcmBufferReadSize() {
+            return pcmBufferReadSize;
         }
 
     }

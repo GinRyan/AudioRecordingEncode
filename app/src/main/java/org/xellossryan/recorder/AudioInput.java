@@ -35,8 +35,8 @@ public class AudioInput extends Thread {
         setName("AudioInput");
 
         //Initialize Audio Recorder
-        // There should compute bufferSizeInBytes per period per channel.
-        L.d("bufferSizeInBytes: " + bufferSizeInBytes);
+        // There should compute pcmBufferReadSize per period per channel.
+        L.d("pcmBufferReadSize: " + bufferSizeInBytes);
 
         audioSource = EncodeArguments.DEFAULT_AUDIO_SOURCE;
         sampleRateInHz = EncodeArguments.DEFAULT_SAMPLING_RATE;
@@ -57,13 +57,13 @@ public class AudioInput extends Thread {
         }
 
         if (audioRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
-            // Because the bufferSizeInBytes is byte units
+            // Because the pcmBufferReadSize is byte units
             // short = byte * 2, if not ,there will be data overflow.
 
-            //minBufferSizeInShort = bufferSizeInBytes / 2;//  / 2;
+            //minBufferSizeInShort = pcmBufferReadSize / 2;//  / 2;
             //TODO
             minBufferSizeInShort = bufferSizeInBytes;
-            //bufferSizeInBytes = minBufferSizeInShort;
+            //pcmBufferReadSize = minBufferSizeInShort;
         }
 
         encodeQueue.preparePool(bufferSizeInBytes);
@@ -87,13 +87,13 @@ public class AudioInput extends Thread {
                 // increase memory use significantly.
                 short[] buffer = new short[minBufferSizeInShort];
                 //TODO There , we can borrow a bufferFrame to fill PCM data.instead of new short[minBufferSizeInShort]
-                int ret = read(buffer, 0, minBufferSizeInShort);
+                int readSize = read(buffer, 0, minBufferSizeInShort);
 
-                if (ret != AudioRecord.ERROR_BAD_VALUE && ret != AudioRecord.ERROR_INVALID_OPERATION) {
+                if (readSize != AudioRecord.ERROR_BAD_VALUE && readSize != AudioRecord.ERROR_INVALID_OPERATION) {
                     //only if right value that pcmBuffer can be used.
                     //Add to the encode queue
-                    encodeQueue.addInQueue(buffer, encodedBuffer, bufferSizeInBytes);
-                    L.i(getName() + "INPUT: " + ret + "  BufferSizeInBytes: " + bufferSizeInBytes + " BufferSizeInShorts: " + minBufferSizeInShort);
+                    encodeQueue.addInQueue(buffer, encodedBuffer, readSize);
+                    L.i(getName() + "INPUT: " + readSize );
                 }
             }
             L.w(getName() + ": Goto Flush status ...");
