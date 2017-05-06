@@ -59,6 +59,11 @@ public class MP3Lame {
     }
 
     /**
+     * 获得MP3 buffer 大小
+     * @return
+     */
+    public static native int getMP3BufferSize();
+    /**
      * 将PCM编码为mp3帧
      *
      * @param bufferLeft  PCM左声道缓冲数据

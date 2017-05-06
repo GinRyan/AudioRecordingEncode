@@ -119,6 +119,9 @@ int flush(unsigned char *mp3buf, int size);
  * 关闭编码器
  * @return
  */
-int close();;
+int close();
+
+JNIEXPORT jint JNICALL
+Java_org_xellossryan_lame_MP3Lame_getMP3BufferSize(JNIEnv *env, jobject instance);
 
 #endif //AKATEAN_MP3LAMEPROXY_C_H

@@ -93,6 +93,12 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
 }
 
 JNIEXPORT jint JNICALL
+Java_org_xellossryan_lame_MP3Lame_getMP3BufferSize(JNIEnv *env, jobject instance) {
+    return lame_get_size_mp3buffer(lameGlobal);
+};
+
+
+JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_close(JNIEnv *env, jobject instance) {
     return close();
 }
@@ -132,6 +138,7 @@ void init(int inSampleRate, int inChannels, int outSampleRate, int outBitrate, i
     lame_set_out_samplerate(lameGlobal, outSampleRate);
     lame_set_brate(lameGlobal, outBitrate);
     lame_set_quality(lameGlobal, quality);
+    lame_set_mode(lameGlobal, (MPEG_mode) 0);
     lame_init_params(lameGlobal);
 }
 

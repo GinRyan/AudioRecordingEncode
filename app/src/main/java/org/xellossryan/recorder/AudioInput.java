@@ -64,7 +64,6 @@ public class AudioInput extends Thread {
             //TODO
             minBufferSizeInShort = bufferSizeInBytes;
             //bufferSizeInBytes = minBufferSizeInShort;
-
         }
 
         encodeQueue.preparePool(bufferSizeInBytes);
@@ -79,6 +78,9 @@ public class AudioInput extends Thread {
             encodeQueue.start();
 
             byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes);
+//            int mp3BufferSize = MP3Lame.getMP3BufferSize();
+//            byte[] encodedBuffer = new byte[mp3BufferSize];
+
             L.i(getName() + ":  encodedBuffer Length:" + encodedBuffer.length);
             while (isRecording.get()) {
                 //In fact we shouldn't always allocate []pcmBuffer in WHILE loop. That will cost time and

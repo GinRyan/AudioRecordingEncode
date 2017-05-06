@@ -48,7 +48,7 @@ public class FrameEncodeQueue extends Thread {
     public void preparePool(int bufferSize) {
         this.bufferSize = bufferSize;
         sampleRateInHz = EncodeArguments.DEFAULT_SAMPLING_RATE;
-        channelConfig = EncodeArguments.DEFAULT_CHANNEL_CONFIG;
+        channelConfig = EncodeArguments.DEFAULT_ENCODER_IN_CHANNEL;
         L.d("initial encoder.");
         encoder.initEncoder();
         encoder.initParameters(ParameterBuilder.builder()
@@ -112,6 +112,9 @@ public class FrameEncodeQueue extends Thread {
                         outputStream.write(frame.encodedBuffer);
                     }
                     outputStream.close();
+                    if (onEncodingEnd!=null){
+                        onEncodingEnd.onEnd(mp3outputFile);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -121,6 +124,16 @@ public class FrameEncodeQueue extends Thread {
         L.w(getName() + ": STOPPED!");
     }
 
+    public OnEncodingEnd onEncodingEnd;
+
+    public FrameEncodeQueue setOnEncodingEnd(OnEncodingEnd onEncodingEnd) {
+        this.onEncodingEnd = onEncodingEnd;
+        return this;
+    }
+
+    public interface OnEncodingEnd {
+        public void onEnd(File audioFile);
+    }
     /**
      * 添加到队列
      *
@@ -229,7 +242,7 @@ public class FrameEncodeQueue extends Thread {
          */
         public BufferedFrame resetAsIdle(int bufferSizeInBytes) {
             this.bufferSizeInBytes = bufferSizeInBytes;
-            pcmBuffer = new short[bufferSizeInBytes / 2];
+            pcmBuffer = new short[bufferSizeInBytes];
             encodedBuffer = new byte[bufferSizeInBytes];
             isIdle = true;
             return this;

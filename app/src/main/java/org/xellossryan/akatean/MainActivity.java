@@ -1,5 +1,7 @@
 package org.xellossryan.akatean;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -10,6 +12,8 @@ import org.xellossryan.lame.MP3Lame;
 import org.xellossryan.lame.MP3LameProxy;
 import org.xellossryan.output.FrameEncodeQueue;
 import org.xellossryan.recorder.AudioInput;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     AudioInput input = null;
@@ -31,8 +35,19 @@ public class MainActivity extends AppCompatActivity {
         this.sampletext = (TextView) findViewById(R.id.sample_text);
 
         record.setText("开始录制");
+        FrameEncodeQueue queue = new FrameEncodeQueue(new MP3LameProxy(MP3Lame.getInstance()));
+        queue.setOnEncodingEnd(new FrameEncodeQueue.OnEncodingEnd() {
+            @Override
+            public void onEnd(File audioFile) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setType("audio/*");
+                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(audioFile));
+                startActivity(Intent.createChooser(intent, "发送音频文件"));
+            }
+        });
+        input = new AudioInput(queue);
 
-        input = new AudioInput(new FrameEncodeQueue(new MP3LameProxy(MP3Lame.getInstance())));
         String version = input.version();
         sampletext.setText(version);
 
