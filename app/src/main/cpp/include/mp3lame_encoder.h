@@ -52,6 +52,12 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
                                                     jshortArray bufferIn_, jint nSamples,
                                                     jbyteArray mp3buf_);
 
+JNIEXPORT jint JNICALL
+Java_org_xellossryan_lame_MP3Lame_getMP3BufferSize(JNIEnv *env, jobject instance);
+
+JNIEXPORT jint JNICALL
+Java_org_xellossryan_lame_MP3Lame_getMP3BufferSizeBySample(JNIEnv *env, jclass type, jint samples);
+
 /**
  * 初始化lame参数
  * @param inSampleRate  输入音频采样率
@@ -107,6 +113,13 @@ int encode_interleave(short bufferIn[],
                       int mp3buf_size);
 
 /**
+ * 获取mp3 buffer大小
+ * @param samples 采样数
+ * @return
+ */
+int get_mp3_buffer_by_samples(int samples);
+
+/**
  * flush 缓冲数据
  *
  * @param mp3buf
@@ -121,7 +134,5 @@ int flush(unsigned char *mp3buf, int size);
  */
 int close();
 
-JNIEXPORT jint JNICALL
-Java_org_xellossryan_lame_MP3Lame_getMP3BufferSize(JNIEnv *env, jobject instance);
 
 #endif //AKATEAN_MP3LAMEPROXY_C_H

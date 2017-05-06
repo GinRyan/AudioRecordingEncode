@@ -92,6 +92,12 @@ Java_org_xellossryan_lame_MP3Lame_encodeInterleaved(JNIEnv *env, jobject instanc
     return ret;
 }
 
+jint
+Java_org_xellossryan_lame_MP3Lame_getMP3BufferSizeBySample(JNIEnv *env, jclass type, jint samples) {
+    return get_mp3_buffer_by_samples(samples);
+}
+
+
 JNIEXPORT jint JNICALL
 Java_org_xellossryan_lame_MP3Lame_getMP3BufferSize(JNIEnv *env, jobject instance) {
     return lame_get_size_mp3buffer(lameGlobal);
@@ -184,6 +190,27 @@ int encode_interleave(short bufferIn[],
         return -1;
     }
     return lame_encode_buffer_interleaved(lameGlobal, bufferIn, nsamples, mp3buf, mp3buf_size);
+}
+
+int get_mp3_buffer_by_samples(int samples){
+    lame_global_flags *lameFlags;
+    lameFlags = lameGlobal;
+
+    int version = lame_get_version(lameFlags);
+    int bitrate = lame_get_brate(lameFlags);
+    int sampleRate = lame_get_out_samplerate(lameFlags);
+
+    float p = (bitrate / 8.0f) / sampleRate;
+
+    if (version == 0) {
+        // MPEG2: num_samples*(bitrate/8)/samplerate + 4*576*(bitrate/8)/samplerate + 256
+        return (jint) ceil(samples * p + 4 * 576 * p + 256);
+    } else if (version == 1) {
+        // MPEG1: num_samples*(bitrate/8)/samplerate + 4*1152*(bitrate/8)/samplerate + 512
+        return (jint) ceil(samples * p + 4 * 1152 * p + 512);
+    } else {
+        return (jint) ceil((1.25 * samples + 7200));
+    }
 }
 
 /**
