@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/Akatean.iml" filepath="$PROJECT_DIR$/Akatean.iml" />
       <module fileurl="file://$PROJECT_DIR$/AudioRecordingEncode.iml" filepath="$PROJECT_DIR$/AudioRecordingEncode.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/lamelibrary/lamelibrary.iml" filepath="$PROJECT_DIR$/lamelibrary/lamelibrary.iml" />
     </modules>
   </component>
 </project>

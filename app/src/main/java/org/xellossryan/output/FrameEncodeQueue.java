@@ -8,7 +8,6 @@ import org.xellossryan.log.L;
 import org.xellossryan.recorder.EncodeArguments;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,7 +31,7 @@ public class FrameEncodeQueue extends Thread {
     private EncoderLayer encoder;
 
     private int sampleRateInHz = 44100;
-    private int channelConfig = 12;//12 for stereo, 10 for mono
+    private int channelConfig = 2;//2 for stereo, 1 for mono
     private byte[] lastOneBuffer;
 
     /**
@@ -87,21 +86,22 @@ public class FrameEncodeQueue extends Thread {
                 frame = taskQueue.take();
                 if (frame.pcmBuffer != null) {
                     //Encoding
-                    int encodeInterleavedLength = encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.pcmBufferReadSize >> 1);
-                    if (encodeInterleavedLength > 0) {
-                        L.i(getName() + ": Encoding Size: " + encodeInterleavedLength);
+                    int encodeLength = 0;
+                    if (channelConfig == 1) {
+                        encodeLength = encoder.encode(frame.pcmBuffer, frame.pcmBuffer, frame.encodedBuffer, frame.pcmBufferReadSize);
+                    } else if (channelConfig == 2) {
+                        encodeLength = encoder.encodeInterleaved(frame.pcmBuffer, frame.encodedBuffer, frame.pcmBufferReadSize >> 1);
+                    }
+                    if (encodeLength > 0) {
+                        L.i(getName() + ": Encoding Size: " + encodeLength);
                         //WriteInFile
-                        outputStream.write(frame.encodedBuffer, 0, encodeInterleavedLength);
+                        outputStream.write(frame.encodedBuffer, 0, encodeLength);
                         //release
                         returnBack(frame);
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
             L.v(getName() + ": End flushing...");
@@ -146,7 +146,7 @@ public class FrameEncodeQueue extends Thread {
     public void addInQueue(short[] buffer, byte[] encodedBuffer, int bufferSizeInShorts) {
         BufferedFrame filledBuffer = borrow().fillBuffer(buffer, encodedBuffer, bufferSizeInShorts);
         try {
-            L.v(getName() + ": Add into queue, remain capacity: " + taskQueue.remainingCapacity());
+            //L.v(getName() + ": Add into queue, remain capacity: " + taskQueue.remainingCapacity());
             taskQueue.put(filledBuffer);
         } catch (InterruptedException e) {
             e.printStackTrace();
