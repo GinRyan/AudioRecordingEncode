@@ -77,7 +77,7 @@ public class AudioInput extends Thread {
             audioRecorder.startRecording();
             encodeQueue.start();
 
-            byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes);
+            byte[] encodedBuffer = MP3Lame.allocateBuffer(bufferSizeInBytes / EncodeArguments.DEFAULT_ENCODER_IN_CHANNEL);
 //            int mp3BufferSize = MP3Lame.getMP3BufferSize();
 //            byte[] encodedBuffer = new byte[mp3BufferSize];
 
