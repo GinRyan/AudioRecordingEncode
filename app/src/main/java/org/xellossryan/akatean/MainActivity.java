@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     String recordFilePath = "";
 
     private TextView sampletext;
-    private android.widget.Button record;
+    private Button record;
     private TextView filepath;
 
     boolean isRecording = false;
