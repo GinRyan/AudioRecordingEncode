@@ -32,7 +32,7 @@ public class FrameEncodeQueue extends Thread {
 
     private int sampleRateInHz = 44100;
     private int channelConfig = 2;//2 for stereo, 1 for mono
-    private byte[] lastOneBuffer;
+    private String storePath;
 
     /**
      * 传入编码器实例
@@ -67,7 +67,7 @@ public class FrameEncodeQueue extends Thread {
     public void run() {
         L.v("Running: " + getName());
         super.run();
-        File mp3outputFile = new File(Environment.getExternalStorageDirectory() + "/zVoice/Aka_" + System.currentTimeMillis() + ".mp3");
+        File mp3outputFile = new File(storePath);
         if (!mp3outputFile.getParentFile().exists()) {
             boolean mkdirs = mp3outputFile.getParentFile().mkdirs();
             if (!mkdirs) {
@@ -130,6 +130,10 @@ public class FrameEncodeQueue extends Thread {
     public FrameEncodeQueue setOnEncodingEnd(OnEncodingEnd onEncodingEnd) {
         this.onEncodingEnd = onEncodingEnd;
         return this;
+    }
+
+    public void setStorePath(String storePath) {
+        this.storePath = storePath;
     }
 
     public interface OnEncodingEnd {
@@ -205,7 +209,6 @@ public class FrameEncodeQueue extends Thread {
     }
 
     public void flush(byte[] lastOneBuffer) {
-        this.lastOneBuffer = lastOneBuffer;
         BufferedFrame lastOneBufferFrame = borrow()
                 .resetAsIdle(bufferSize)
                 .setPcmBuffer(null)

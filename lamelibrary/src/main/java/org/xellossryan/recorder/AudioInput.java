@@ -29,6 +29,7 @@ public class AudioInput extends Thread {
     private int channelConfig = 12;//12 for stereo, 10 for mono
 
     int minBufferSizeInShort = 0;
+    private String storePath;
 
     public AudioInput(FrameEncodeQueue encodeQueue) {
         this.encodeQueue = encodeQueue;
@@ -152,4 +153,8 @@ public class AudioInput extends Thread {
         return isRecording.get();
     }
 
+    public void setStorePath(String storePath) {
+        this.storePath = storePath;
+        encodeQueue.setStorePath(storePath);
+    }
 }

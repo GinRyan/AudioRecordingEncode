@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         recordFilePath = RecordConstants.MP3_DIR_PATH + System.currentTimeMillis() + ".mp3";
         record.setText("停止录制");
         filepath.setText(String.format("%s  正在录制", recordFilePath));
-
+        input.setStorePath(recordFilePath);
         input.startRecording();
     }
 
