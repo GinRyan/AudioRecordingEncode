@@ -35,6 +35,14 @@ public class MainActivity extends AppCompatActivity {
         this.sampletext = findViewById(R.id.sample_text);
 
         record.setText("开始录制");
+
+        /////////////As a HearAid
+        //FrameEncodeQueue queue = new FrameEncodeQueue(new AudioOutputProxy());
+        //queue.setAllowWritingToFile(false);
+        //////////////
+
+
+        /////////////As a mp3 encoder
         FrameEncodeQueue queue = new FrameEncodeQueue(new MP3LameProxy(MP3Lame.getInstance()));
         queue.setOnEncodingEnd(new FrameEncodeQueue.OnEncodingEnd() {
             @Override

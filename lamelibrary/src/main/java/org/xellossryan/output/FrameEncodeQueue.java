@@ -44,6 +44,22 @@ public class FrameEncodeQueue extends Thread {
         setName("FrameEncodeQueue");
     }
 
+    /**
+     * 允许写入编码后的字节流到文件
+     * <p>
+     * 默认为true
+     */
+    public boolean allowWriteToFile = true;
+
+    public FrameEncodeQueue setAllowWritingToFile(boolean allowWriteToFile) {
+        this.allowWriteToFile = allowWriteToFile;
+        return this;
+    }
+
+    public boolean isAllowWriteToFile() {
+        return allowWriteToFile;
+    }
+
     public void preparePool(int bufferSize) {
         this.bufferSize = bufferSize;
         sampleRateInHz = EncodeArguments.DEFAULT_SAMPLING_RATE;
@@ -68,16 +84,18 @@ public class FrameEncodeQueue extends Thread {
         L.v("Running: " + getName());
         super.run();
         File mp3outputFile = new File(storePath);
-        if (!mp3outputFile.getParentFile().exists()) {
+        if (allowWriteToFile && !mp3outputFile.getParentFile().exists()) {
             boolean mkdirs = mp3outputFile.getParentFile().mkdirs();
             if (!mkdirs) {
                 return;
             }
         }
-        FileOutputStream outputStream = null;
+        FileOutputStream encodedOutputStream = null;
         BufferedFrame frame = null;
         try {
-            outputStream = new FileOutputStream(mp3outputFile);
+            if (allowWriteToFile) {
+                encodedOutputStream = new FileOutputStream(mp3outputFile);
+            }
             L.w(getName() + ": Task queue START: " + taskQueue.remainingCapacity() + "  " +
                     "TaskQueue#isEmpty()?" + taskQueue.isEmpty());
             // L.w(getName() + ": isEncodingState: " + isEncodingState);
@@ -95,7 +113,9 @@ public class FrameEncodeQueue extends Thread {
                     if (encodeLength > 0) {
                         L.i(getName() + ": Encoding Size: " + encodeLength);
                         //WriteInFile
-                        outputStream.write(frame.encodedBuffer, 0, encodeLength);
+                        if (encodedOutputStream != null) {
+                            encodedOutputStream.write(frame.encodedBuffer, 0, encodeLength);
+                        }
                         //release
                         returnBack(frame);
                     }
@@ -106,13 +126,13 @@ public class FrameEncodeQueue extends Thread {
         } finally {
             L.v(getName() + ": End flushing...");
             try {
-                if (outputStream != null) {
+                if (encodedOutputStream != null) {
                     returnBack(frame);
                     if (frame != null) {
                         encoder.flush(frame.encodedBuffer);
-                        outputStream.write(frame.encodedBuffer);
+                        encodedOutputStream.write(frame.encodedBuffer);
                     }
-                    outputStream.close();
+                    encodedOutputStream.close();
                     if (onEncodingEnd != null) {
                         onEncodingEnd.onEnd(mp3outputFile);
                     }

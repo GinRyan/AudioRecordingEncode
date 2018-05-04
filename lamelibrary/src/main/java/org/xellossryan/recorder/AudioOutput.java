@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
  * <p>
  * Created by Liang on 2017/5/3.
  */
-public class AudioOutput extends Thread {
+public class AudioOutput{
     AudioTrack track;
 
     int audioSource;
@@ -29,12 +29,12 @@ public class AudioOutput extends Thread {
         track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, AudioTrack.MODE_STREAM);
     }
 
-    @Override
-    public void run() {
-        super.run();
-        //TODO Running audio track output playing
-    }
-
+//    @Override
+//    public void run() {
+//        super.run();
+//        //TODO Running audio track output playing
+//    }
+//
 
     public void release() {
         track.release();
