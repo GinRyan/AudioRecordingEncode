@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 
+
 android {
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
@@ -15,7 +16,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++11 -frtti -fexceptions -Wpointer-sign"
-                abiFilters "armeabi","x86"
+                abiFilters "armeabi"//, "x86"
             }
         }
 
@@ -48,3 +49,4 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     testImplementation 'junit:junit:4.12'
 }
+apply from: 'nexus_upload.gradle'

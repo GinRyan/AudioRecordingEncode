@@ -1,0 +1,94 @@
+apply plugin: 'maven'
+
+/**
+ * 使用方法：
+ *
+ * https://www.jianshu.com/p/efddad9d4f84
+ * https://www.jianshu.com/p/0629548ab5a4
+ *
+ */
+/**
+ * 多版本集成时需要参考
+ *
+ * http://blog.csdn.net/zhuyb829/article/details/78899465
+ */
+
+//task androidJavadocs(type: Javadoc) {
+//    options.encoding = "utf-8"
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
+//
+//task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+//    classifier = 'javadoc'
+//    from androidJavadocs.destinationDir
+//}
+
+/**
+ * 公司内网配置判断
+ */
+boolean isInet = false
+
+def repositoryUrl
+
+if (!isInet) {
+    repositoryUrl = uri('../repo')
+} else {
+   // repositoryUrl = NEXUS_REPOSITORY_URL
+}
+
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+
+group = POM_GROUPID
+version = POM_VERSION
+
+configurations {
+    deployerJars
+}
+
+dependencies {
+    deployerJars "org.apache.maven.wagon:wagon-http:2.2"
+}
+
+artifacts {
+    archives androidSourcesJar
+//    archives androidJavadocsJar
+}
+
+
+println "是否在公司内网存在nexus服务器: $isInet -  $repositoryUrl"
+
+uploadArchives {
+
+    repositories {
+        mavenDeployer {//定义本地maven仓库的地址
+            repository(url: repositoryUrl) {
+             //   authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+            }
+            pom.project {
+                name POM_NAME
+                version POM_VERSION
+                artifactId POM_ARTIFACTID
+                groupId POM_GROUPID
+                packaging POM_PACKAGING
+                description POM_DESCRIPTION
+            }
+        }
+
+    }
+}
+//需要在gradle.properties中添加以下字段
+//NEXUS_USERNAME=
+//NEXUS_PASSWORD=
+//NEXUS_REPOSITORY_URL=
+//POM_NAME=updatelib
+//POM_VERSION=1.1.8
+//POM_ARTIFACTID=updatelib
+//POM_GROUPID=org.ginryan.updatelib
+//POM_PACKAGING=aar
+//POM_DESCRIPTION=This is a common update apk library.
