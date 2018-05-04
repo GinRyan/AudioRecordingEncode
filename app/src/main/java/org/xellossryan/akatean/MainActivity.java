@@ -30,9 +30,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.filepath = (TextView) findViewById(R.id.filepath);
-        this.record = (Button) findViewById(R.id.record);
-        this.sampletext = (TextView) findViewById(R.id.sample_text);
+        this.filepath = findViewById(R.id.filepath);
+        this.record = findViewById(R.id.record);
+        this.sampletext = findViewById(R.id.sample_text);
 
         record.setText("开始录制");
         FrameEncodeQueue queue = new FrameEncodeQueue(new MP3LameProxy(MP3Lame.getInstance()));
