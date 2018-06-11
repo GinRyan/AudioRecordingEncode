@@ -116,9 +116,9 @@ public class FrameEncodeQueue extends Thread {
                         if (encodedOutputStream != null) {
                             encodedOutputStream.write(frame.encodedBuffer, 0, encodeLength);
                         }
-                        //release
-                        returnBack(frame);
                     }
+                    //release
+                    returnBack(frame);
                 }
             }
         } catch (IOException | InterruptedException e) {
