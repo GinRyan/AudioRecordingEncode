@@ -53,10 +53,14 @@ public class AudioInput extends Thread {
 
         int audioSessionId = audioRecorder.getAudioSessionId();
 
+        //噪音抑制
         AudioFxEffectManager.enableAudioEffect(NoiseSuppressor.create(audioSessionId));
+        //回声消除
         AudioFxEffectManager.enableAudioEffect(AcousticEchoCanceler.create(audioSessionId));
+        //自动增益控制
         AudioFxEffectManager.enableAudioEffect(AutomaticGainControl.create(audioSessionId));
-
+        //TODO 貌似在高通的机器上都没什么用，且自带了？！
+        
         if (bufferSizeInBytes == AudioRecord.ERROR_BAD_VALUE) {
             L.e("audioSource:" + audioSource);
             L.e("sampleRateInHz:" + sampleRateInHz);
