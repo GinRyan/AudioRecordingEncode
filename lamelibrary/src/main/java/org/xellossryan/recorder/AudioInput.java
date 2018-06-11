@@ -1,7 +1,10 @@
 package org.xellossryan.recorder;
 
 import android.media.AudioRecord;
+import android.media.audiofx.AudioEffect;
+import android.media.audiofx.NoiseSuppressor;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.xellossryan.lame.MP3Lame;
 import org.xellossryan.log.L;
@@ -48,6 +51,25 @@ public class AudioInput extends Thread {
 
         audioRecorder = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
 
+        int audioSessionId = audioRecorder.getAudioSessionId();
+
+        //噪音抑制
+        NoiseSuppressor noiseSuppressor = NoiseSuppressor.create(audioSessionId);
+        if (noiseSuppressor != null) {
+            boolean noiseSuppressorEnabled = false;
+            noiseSuppressorEnabled = noiseSuppressor.getEnabled();
+            Log.i("AudioFx", "AudioFx: noiseSuppressorEnabled:" + noiseSuppressorEnabled);
+            noiseSuppressor.setEnabled(true);
+            noiseSuppressor.setEnableStatusListener(new AudioEffect.OnEnableStatusChangeListener() {
+                @Override
+                public void onEnableStatusChange(AudioEffect effect, boolean enabled) {
+                    Log.i("AudioFx", "AudioFx: noiseSuppressorEnabled is Now:" + enabled + " AudioEffect:" + effect.getDescriptor().name);
+                }
+            });
+
+        } else {
+            Log.i("AudioFx", "AudioFx: NoiseSuppressor is NULL");
+        }
 
         if (bufferSizeInBytes == AudioRecord.ERROR_BAD_VALUE) {
             L.e("audioSource:" + audioSource);
@@ -94,7 +116,7 @@ public class AudioInput extends Thread {
                     //only if right value that pcmBuffer can be used.
                     //Add to the encode queue
                     encodeQueue.addInQueue(buffer, encodedBuffer, readSize);
-                    L.i(getName() + "INPUT: " + readSize );
+                    L.i(getName() + "INPUT: " + readSize);
                 }
             }
             L.w(getName() + ": Goto Flush status ...");

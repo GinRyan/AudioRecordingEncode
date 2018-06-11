@@ -2,14 +2,16 @@ package org.xellossryan.recorder;
 
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.media.audiofx.NoiseSuppressor;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 /**
  * 音频输出线程
  * <p>
  * Created by Liang on 2017/5/3.
  */
-public class AudioOutput{
+public class AudioOutput {
     AudioTrack track;
 
     int audioSource;
@@ -18,6 +20,7 @@ public class AudioOutput{
     int audioFormat;
     int bufferSizeInBytes;
 
+    int audioSessionId;
 
     public AudioOutput() {
         audioSource = EncodeArguments.DEFAULT_AUDIO_SOURCE;
@@ -27,14 +30,10 @@ public class AudioOutput{
         bufferSizeInBytes = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
 
         track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, AudioTrack.MODE_STREAM);
-    }
+        audioSessionId = track.getAudioSessionId();
 
-//    @Override
-//    public void run() {
-//        super.run();
-//        //TODO Running audio track output playing
-//    }
-//
+
+    }
 
     public void release() {
         track.release();
