@@ -1,1 +1,1 @@
-include ':app', ':lamelibrary'
+include ':app', ':lamelibrary',':speexdsplibrary'
