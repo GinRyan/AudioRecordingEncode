@@ -1,10 +1,10 @@
 package org.xellossryan.recorder;
 
 import android.media.AudioRecord;
-import android.media.audiofx.AudioEffect;
+import android.media.audiofx.AcousticEchoCanceler;
+import android.media.audiofx.AutomaticGainControl;
 import android.media.audiofx.NoiseSuppressor;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import org.xellossryan.lame.MP3Lame;
 import org.xellossryan.log.L;
@@ -53,23 +53,9 @@ public class AudioInput extends Thread {
 
         int audioSessionId = audioRecorder.getAudioSessionId();
 
-        //噪音抑制
-        NoiseSuppressor noiseSuppressor = NoiseSuppressor.create(audioSessionId);
-        if (noiseSuppressor != null) {
-            boolean noiseSuppressorEnabled = false;
-            noiseSuppressorEnabled = noiseSuppressor.getEnabled();
-            Log.i("AudioFx", "AudioFx: noiseSuppressorEnabled:" + noiseSuppressorEnabled);
-            noiseSuppressor.setEnabled(true);
-            noiseSuppressor.setEnableStatusListener(new AudioEffect.OnEnableStatusChangeListener() {
-                @Override
-                public void onEnableStatusChange(AudioEffect effect, boolean enabled) {
-                    Log.i("AudioFx", "AudioFx: noiseSuppressorEnabled is Now:" + enabled + " AudioEffect:" + effect.getDescriptor().name);
-                }
-            });
-
-        } else {
-            Log.i("AudioFx", "AudioFx: NoiseSuppressor is NULL");
-        }
+        AudioFxEffectManager.enableAudioEffect(NoiseSuppressor.create(audioSessionId));
+        AudioFxEffectManager.enableAudioEffect(AcousticEchoCanceler.create(audioSessionId));
+        AudioFxEffectManager.enableAudioEffect(AutomaticGainControl.create(audioSessionId));
 
         if (bufferSizeInBytes == AudioRecord.ERROR_BAD_VALUE) {
             L.e("audioSource:" + audioSource);
